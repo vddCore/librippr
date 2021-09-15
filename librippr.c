@@ -87,7 +87,8 @@ rippr_screencap_t* RIPPR_screenshot(void) {
     }
 
     memcpy(ret_val->img_data, image_data, image_data_len);
-
+    g_current_error = RIPPR_E_SUCCESS;
+    
 __exit:
     if (image_reply) {
         free(image_reply);
@@ -104,7 +105,6 @@ __exit:
         x_connection = NULL;
     }
 
-    g_current_error = RIPPR_E_SUCCESS;
     return ret_val;
 }
 
