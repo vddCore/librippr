@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <xcb/xcb.h>
 
 #include "librippr.h"
@@ -9,8 +10,12 @@ static rippr_error_t g_current_error;
 
 rippr_screencap_t* RIPPR_screenshot(void) {
     rippr_screencap_t* ret_val = NULL;
+    xcb_connection_t* x_connection = NULL;
+    xcb_get_geometry_reply_t* geometry_reply = NULL;
+    xcb_get_image_reply_t* image_reply = NULL;
+    uint8_t* image_data = NULL;
 
-    xcb_connection_t* x_connection = xcb_connect(NULL, NULL);
+    x_connection = xcb_connect(NULL, NULL);
 
     if (!x_connection) {
         g_current_error = RIPPR_E_XCB_CONNECTION;
@@ -27,7 +32,7 @@ rippr_screencap_t* RIPPR_screenshot(void) {
     xcb_screen_iterator_t screen_iterator = xcb_setup_roots_iterator(setup);
     xcb_window_t root = screen_iterator.data->root;
 
-    xcb_get_geometry_reply_t* geometry_reply = xcb_get_geometry_reply(
+    geometry_reply = xcb_get_geometry_reply(
         x_connection, 
         xcb_get_geometry(x_connection, root),
         NULL
@@ -38,7 +43,7 @@ rippr_screencap_t* RIPPR_screenshot(void) {
         goto __exit;
     }
 
-    xcb_get_image_reply_t* image_reply = xcb_get_image_reply(
+    image_reply = xcb_get_image_reply(
         x_connection,
         xcb_get_image(
             x_connection,
@@ -58,7 +63,7 @@ rippr_screencap_t* RIPPR_screenshot(void) {
         goto __exit;
     }
 
-    uint8_t* image_data = xcb_get_image_data(image_reply);
+    image_data = xcb_get_image_data(image_reply);
 
     if (!image_data) {
         g_current_error = RIPPR_E_XCB_IMAGE_DATA;
@@ -88,7 +93,7 @@ rippr_screencap_t* RIPPR_screenshot(void) {
 
     memcpy(ret_val->img_data, image_data, image_data_len);
     g_current_error = RIPPR_E_SUCCESS;
-    
+
 __exit:
     if (image_reply) {
         free(image_reply);
